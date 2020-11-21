@@ -1,5 +1,6 @@
 #include "framework.h"
-#include "CGameFramework.h"
+#include "GameFramework.h"
+
 CGameFramework::CGameFramework()
 {
 	m_pd3Device = NULL;
@@ -69,7 +70,7 @@ bool CGameFramework::CreateDirect3DDisplay()
 		D3D_FEATURE_LEVEL_10_0
 	};
 	UINT nFeatureLevels = sizeof(d3dFeatureLevels) / sizeof(D3D_FEATURE_LEVEL);
-	
+
 	// 생성할 스왑 체인을 서술하는 구조체
 	DXGI_SWAP_CHAIN_DESC dxgiSwapChainDesc;
 	::ZeroMemory(&dxgiSwapChainDesc, sizeof(dxgiSwapChainDesc));
@@ -107,11 +108,88 @@ bool CGameFramework::CreateDirect3DDisplay()
 	return true;
 }
 
-void CGameFramework::OnDestroy()
+void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
 {
+	switch (nMessageID)
+	{
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+		break;
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+		break;
+	case WM_MOUSEMOVE:
+		break;
+	default:
+		break;
+	}
 }
 
+void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	switch (nMessageID)
+	{
+	case WM_KEYUP:
+		switch (wParam)
+		{
+		case VK_ESCAPE:
+			::PostQuitMessage(0);
+			break;
+		default:
+			break;
+		}
+		break;
+	default:
+		break;
+	}
+}
 
+LRESULT CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
+{
+	switch (nMessageID)
+	{
+	case WM_SIZE:
+	{
+		m_nWndClientWidth = LOWORD(lParam);
+		m_nWndClientHeight = HIWORD(lParam);
+		m_pd3dDeviceContext->OMGetRenderTargets(0, NULL, NULL);
+		if (m_pd3dRenderTargetView)
+			m_pd3dRenderTargetView->Release();
+		m_pDXGISwapChain->ResizeBuffers(2, m_nWndClientWidth, m_nWndClientHeight, DXGI_FORMAT_R8G8B8A8_UNORM, 0);
+		CreateRenderTargetView();
+		break;
+	}
+	case WM_LBUTTONDOWN:
+	case WM_RBUTTONDOWN:
+	case WM_LBUTTONUP:
+	case WM_RBUTTONUP:
+	case WM_MOUSEMOVE:
+		OnProcessingMouseMessage(hWnd, nMessageID, wParam, lParam);
+		break;
+	case WM_KEYDOWN:
+	case WM_KEYUP:
+		OnProcessingKeyboardMessage(hWnd, nMessageID, wParam, lParam);
+		break;
+	}
+	return 0;
+}
+
+void CGameFramework::OnDestroy()
+{
+	//게임객체소멸
+	ReleaseObjects();
+
+	if (m_pd3dDeviceContext)
+		m_pd3dDeviceContext->ClearState();
+	if (m_pd3dRenderTargetView)
+		m_pd3dRenderTargetView->Release();
+	if(m_pDXGISwapChain)
+		m_pDXGISwapChain->Release();
+	if (m_pd3dDeviceContext)
+		m_pd3dDeviceContext->Release();
+	if (m_pd3Device)
+		m_pd3Device->Release();
+}
 
 void CGameFramework::BuildObjects()
 {
@@ -131,17 +209,14 @@ void CGameFramework::AnimateObjects()
 
 void CGameFramework::FrameAdvance()
 {
+	ProcessInput();
+	AnimateObjects();
+	float fClearColor[4] = { 0.0f,0.125f,0.3f,1.0f };
+	//랜더 타깃 뷰를 색상 fClearColor 색상으로 채춘다.
+	m_pd3dDeviceContext->ClearRenderTargetView(m_pd3dRenderTargetView, fClearColor);
+	//후면버퍼를 전면 버퍼로 출력
+	m_pDXGISwapChain->Present(0, 0);
 }
 
-void CGameFramework::OnProcessingMouseMessage(HWND hWnd, UINT D3D10_MESSAGE_ID_UNKNOWN, WPARAM wParam, LPARAM lParam)
-{
-}
 
-void CGameFramework::OnProcessingKeyboardMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
-{
-}
 
-LRESULT CGameFramework::OnProcessingWindowMessage(HWND hWnd, UINT nMessageID, WPARAM wParam, LPARAM lParam)
-{
-	return LRESULT();
-}

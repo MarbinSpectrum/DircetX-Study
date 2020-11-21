@@ -151,7 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="CGameFramework.h" />
+    <ClInclude Include="GameFramework.h" />
     <ClInclude Include="DirectX11_Study02.h" />
     <ClInclude Include="framework.h" />
     <ClInclude Include="Resource.h" />

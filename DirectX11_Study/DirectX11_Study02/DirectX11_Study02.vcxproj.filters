@@ -27,7 +27,7 @@
     <ClInclude Include="DirectX11_Study02.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
-    <ClInclude Include="CGameFramework.h">
+    <ClInclude Include="GameFramework.h">
       <Filter>헤더 파일</Filter>
     </ClInclude>
   </ItemGroup>
